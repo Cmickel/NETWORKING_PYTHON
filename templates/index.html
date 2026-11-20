@@ -1,93 +1,403 @@
 ﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Router Console</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --ink: #131B2B;
-      --blue: #2F4A63;
-      --teal: #5B91A3;
-      --mint: #CFEAE0;
-      --page: #f4f8f6;
-      --line: #dce8e4;
-      --white: #fff;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 44px 20px; background: var(--page); color: var(--ink); font-family: Arial, sans-serif; }
-    main { width: min(820px, 100%); margin: 0 auto; }
-    .top { margin-bottom: 26px; }
-    .eyebrow { margin: 0 0 8px; color: var(--teal); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-    h1 { margin: 0; font-size: clamp(28px, 5vw, 36px); letter-spacing: -.04em; }
-    .subtitle { margin: 9px 0 0; color: var(--blue); line-height: 1.55; }
-    .panel { background: var(--white); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 20px #131B2B0a; }
-    .connection { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 22px; }
-    .connection-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
-    .icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: 10px; background: var(--mint); color: var(--blue); font-size: 20px; }
-    .label { margin: 0 0 5px; color: var(--blue); font-size: 12px; }
-    .address { margin: 0; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
-    .protocol { display: inline-block; margin-left: 8px; padding: 4px 7px; border-radius: 20px; background: var(--mint); color: var(--blue); font-size: 11px; font-weight: 700; vertical-align: 2px; }
-    button { flex: 0 0 auto; border: 0; border-radius: 7px; padding: 11px 16px; background: var(--blue); color: var(--white); font-size: 14px; font-weight: 700; cursor: pointer; transition: background .15s; }
-    button:hover { background: var(--teal); }
-    button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
-    .error { margin-top: 16px; padding: 13px 15px; border: 1px solid var(--teal); border-radius: 8px; background: var(--mint); color: var(--ink); line-height: 1.5; overflow-wrap: anywhere; }
-    .results { margin-top: 28px; }
-    .results-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-    .results-heading h2 { margin: 0; font-size: 18px; }
-    .results-heading span { color: var(--blue); font-size: 12px; }
-    .result-list { display: grid; gap: 12px; }
-    .result { overflow: hidden; }
-    .result h3 { margin: 0; padding: 13px 16px; border-bottom: 1px solid var(--line); background: var(--mint); color: var(--ink); font-size: 14px; }
-    pre { margin: 0; padding: 15px 16px; overflow-x: auto; background: var(--white); color: var(--ink); font: 13px/1.55 Consolas, monospace; white-space: pre-wrap; }
-    @media (max-width: 560px) {
-      body { padding: 28px 14px; }
-      .connection { align-items: stretch; flex-direction: column; padding: 17px; }
-      button { width: 100%; }
-      .results-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <header class="top">
-      <p class="eyebrow">Network tools</p>
-      <h1>Router Console</h1>
-      <p class="subtitle">Run router commands and review the output in one place.</p>
-    </header>
-
-    <section class="panel connection" aria-label="Router connection">
-      <div class="connection-info">
-        <div class="icon" aria-hidden="true">⌁</div>
-        <div>
-          <p class="label">Connected device</p>
-          <p class="address">{{ router_ip }}:{{ router_port }} <span class="protocol">TELNET</span></p>
-        </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Router Console</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #edf4ff;
+        --muted: #9aabc3;
+        --accent: #58d6bd;
+        --page: #0b1220;
+        --surface: #111c2e;
+        --line: #253650;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 56px 22px;
+        background:
+          radial-gradient(ellipse at 15% 0%, #12333a 0, transparent 35%),
+          radial-gradient(ellipse at 100% 20%, #182843 0, transparent 34%),
+          var(--page);
+        color: var(--ink);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+      main {
+        width: min(900px, 100%);
+        margin: 0 auto;
+      }
+      .top {
+        margin-bottom: 30px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 0 14px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .eyebrow::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        content: "";
+        box-shadow: 0 0 14px #58d6bd88;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(32px, 5vw, 46px);
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+      }
+      .subtitle {
+        margin: 12px 0 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+      .panel {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(145deg, #142137, #101a2a);
+        box-shadow: 0 18px 55px #00000025;
+      }
+      .connection {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 24px;
+      }
+      .connection-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+      }
+      .icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 50px;
+        height: 50px;
+        border: 1px solid #58d6bd35;
+        border-radius: 14px;
+        background: #102f35;
+        color: var(--accent);
+        font-size: 24px;
+      }
+      .label {
+        margin: 0 0 7px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .address {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+      .protocol {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 4px 8px;
+        border: 1px solid #58d6bd40;
+        border-radius: 999px;
+        background: #58d6bd14;
+        color: var(--accent);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        vertical-align: 3px;
+      }
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        min-height: 46px;
+        flex: 0 0 auto;
+        padding: 0 18px;
+        border: 1px solid #7de6d1;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #08211f;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 6px 20px #58d6bd20;
+        transition:
+          transform 0.15s ease,
+          background 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      button::after {
+        content: "→";
+        font-size: 17px;
+      }
+      button:hover {
+        transform: translateY(-1px);
+        background: #78e7d3;
+        box-shadow: 0 9px 25px #58d6bd35;
+      }
+      button:focus-visible {
+        outline: 3px solid #d2fff5;
+        outline-offset: 3px;
+      }
+      .error {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border: 1px solid #ff808055;
+        border-radius: 11px;
+        background: #351d2b;
+        color: #ffb8b8;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+      .results {
+        margin-top: 36px;
+      }
+      .results-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .results-heading h2 {
+        margin: 0;
+        font-size: 19px;
+        letter-spacing: -0.02em;
+      }
+      .results-heading span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .result-list {
+        display: grid;
+        gap: 14px;
+      }
+      .result {
+        background: #101a29;
+      }
+      .result h3 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        padding: 14px 17px;
+        border-bottom: 1px solid var(--line);
+        background: #17243a;
+        color: var(--accent);
+        font:
+          600 12px/1.4 "SFMono-Regular",
+          Consolas,
+          "Liberation Mono",
+          monospace;
+        overflow-wrap: anywhere;
+      }
+      .result h3::before {
+        color: #7188a6;
+        content: "$";
+      }
+      pre {
+        max-height: 360px;
+        margin: 0;
+        padding: 17px;
+        overflow: auto;
+        color: #d6e2f3;
+        font:
+          12px/1.65 "SFMono-Regular",
+          Consolas,
+          "Liberation Mono",
+          monospace;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      @media (max-width: 600px) {
+        body {
+          padding: 34px 16px;
+        }
+        .connection {
+          align-items: stretch;
+          flex-direction: column;
+          padding: 19px;
+        }
+        button {
+          width: 100%;
+        }
+        .results-heading {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .protocol {
+          margin: 7px 0 0;
+          vertical-align: baseline;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+      /* Full console layout */
+      body { padding: 42px 22px 64px; background: radial-gradient(ellipse at 8% 0%, #13343a 0, transparent 32%), radial-gradient(ellipse at 100% 10%, #1a2940 0, transparent 34%), #0a101b; font-size: 15px; line-height: 1.5; }
+      main { width: min(1040px, 100%); }
+      .masthead { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 54px; }
+      .brand { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 750; }
+      .brand-mark, .device-icon { display: grid; place-items: center; border: 1px solid #65e0c340; border-radius: 12px; background: #123a39; color: #65e0c3; }
+      .brand-mark { width: 38px; height: 38px; font-size: 21px; }
+      .top-tag { color: #91a1b8; font-size: 11px; letter-spacing: .09em; }
+      .hero { max-width: 700px; margin-bottom: 28px; }
+      .eyebrow { color: #65e0c3; font-size: 11px; letter-spacing: .15em; }
+      .eyebrow::before { background: #65e0c3; box-shadow: 0 0 13px #65e0c388; }
+      h1 { font-size: clamp(34px, 5.8vw, 54px); line-height: 1.04; letter-spacing: -.055em; }
+      .intro { max-width: 570px; margin: 15px 0 0; color: #91a1b8; font-size: 15px; line-height: 1.7; }
+      .panel { border-color: #26354b; border-radius: 17px; background: linear-gradient(145deg, #131f31, #101927); box-shadow: 0 20px 55px #0003; }
+      .control-panel { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 22px; }
+      .device { display: flex; align-items: center; gap: 15px; min-width: 0; }
+      .device-icon { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 14px; font-size: 23px; }
+      .device-label { margin: 0 0 5px; color: #91a1b8; font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+      .device-address { margin: 0; font: 600 15px/1.5 Consolas, monospace; overflow-wrap: anywhere; }
+      .badges { display: flex; gap: 8px; margin-top: 8px; }
+      .badge, .result-count { margin: 0; padding: 4px 9px; border: 1px solid #26354b; border-radius: 999px; color: #bac8db; font-size: 10px; font-weight: 750; letter-spacing: .06em; vertical-align: baseline; }
+      .badge.protocol { border-color: #65e0c344; background: #65e0c311; color: #65e0c3; }
+      .run-button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 10px; padding: 0 17px; border: 1px solid #8bf1d9; border-radius: 10px; background: #65e0c3; color: #09211f; font: inherit; font-size: 13px; font-weight: 850; cursor: pointer; box-shadow: 0 8px 24px #65e0c322; transition: transform .16s ease, background .16s ease; }
+      .run-button::after { content: none; }
+      .run-button:hover:not(:disabled) { transform: translateY(-1px); background: #8af0d9; }
+      .run-button:focus-visible { outline: 3px solid #d5fff4; outline-offset: 3px; }
+      .run-button:disabled { cursor: wait; opacity: .8; }
+      .button-arrow { font-size: 18px; }
+      .spinner { display: none; width: 14px; height: 14px; border: 2px solid #09211f55; border-top-color: #09211f; border-radius: 50%; animation: spin .7s linear infinite; }
+      .run-button.is-loading .spinner { display: block; }
+      .run-button.is-loading .button-arrow { display: none; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .command-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 19px; }
+      .command-caption { margin-right: 3px; color: #91a1b8; font-size: 11px; }
+      .command-chip { padding: 5px 9px; border: 1px solid #26354b; border-radius: 7px; background: #101927; color: #c0cde0; font: 10px/1.3 Consolas, monospace; }
+      .error { display: flex; gap: 11px; margin-top: 18px; padding: 15px 17px; border-color: #ff849655; border-radius: 12px; background: #321e2a; color: #ffb6c0; }
+      .error-icon { flex: 0 0 auto; font-weight: 900; }
+      .results { margin-top: 42px; }
+      .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+      .section-kicker { margin: 0 0 4px; color: #65e0c3; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+      .section-heading h2 { margin: 0; font-size: 20px; }
+      .result-list { gap: 13px; }
+      .result-head { display: flex; align-items: center; gap: 11px; padding: 13px 16px; border-bottom: 1px solid #26354b; background: #172235; }
+      .result-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #65e0c3; }
+      .result h3 { margin: 0; padding: 0; border: 0; background: none; color: #d8e6f8; font: 600 12px/1.5 Consolas, monospace; }
+      .result h3::before { content: none; }
+      .result-label { margin-left: auto; color: #7488a3; font-size: 10px; }
+      pre { max-height: 390px; padding: 17px; background: transparent; color: #d3deed; font: 12px/1.7 Consolas, monospace; tab-size: 2; }
+      .empty { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 14px; margin-top: 25px; padding: 19px; }
+      .empty-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: #172b36; color: #65e0c3; }
+      .empty h2 { margin: 1px 0 5px; font-size: 14px; }
+      .empty p { margin: 0; color: #91a1b8; font-size: 12px; }
+      footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #26354b99; color: #74859d; font-size: 11px; }
+      @media (max-width: 640px) {
+        body { padding: 25px 15px 42px; }
+        .masthead { margin-bottom: 39px; }
+        .top-tag { font-size: 9px; }
+        .control-panel { grid-template-columns: 1fr; gap: 18px; padding: 17px; }
+        .run-button { width: 100%; }
+        .device-icon { width: 43px; height: 43px; flex-basis: 43px; }
+        .device-address { font-size: 13px; }
+        .section-heading { align-items: flex-start; }
+        .result-label { display: none; }
+        pre { max-height: 320px; padding: 14px; font-size: 11px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="masthead">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><span>NetOps Console</span></div>
+        <span class="top-tag">DEVICE MANAGEMENT</span>
       </div>
-      <form method="post">
-        <button type="submit">Run commands</button>
-      </form>
-    </section>
-
-    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-
-    {% if results %}
-      <section class="results" aria-label="Command results">
-        <div class="results-heading">
-          <h2>Command results</h2>
-          <span>{{ results|length }} commands</span>
+      <header class="hero">
+        <p class="eyebrow">Router diagnostics</p>
+        <h1>Know what’s happening<br>on your network.</h1>
+        <p class="intro">Collect a live snapshot from your router and inspect its configuration, interface status, and system information.</p>
+      </header>
+      <section class="panel control-panel" aria-labelledby="target-heading">
+        <div class="device">
+          <div class="device-icon" aria-hidden="true">⌘</div>
+          <div>
+            <p class="device-label" id="target-heading">Target router</p>
+            <p class="device-address">{{ router_ip }}:{{ router_port }}</p>
+            <div class="badges"><span class="badge protocol">TELNET</span><span class="badge">READ ONLY</span></div>
+          </div>
+        </div>
+        <form method="post" id="command-form">
+          <button class="run-button" type="submit" id="run-button">
+            <span class="spinner" aria-hidden="true"></span><span class="button-text">Run diagnostics</span><span class="button-arrow" aria-hidden="true">→</span>
+          </button>
+        </form>
+      </section>
+      <div class="command-strip" aria-label="Commands to be run">
+        <span class="command-caption">This run includes</span>
+        <code class="command-chip">show running-config</code>
+        <code class="command-chip">show ip interface brief</code>
+        <code class="command-chip">show version</code>
+      </div>
+      {% if error %}
+      <div class="error" role="alert"><span class="error-icon" aria-hidden="true">!</span><span>{{ error }}</span></div>
+      {% endif %}
+      {% if results %}
+      <section class="results" aria-labelledby="results-title">
+        <div class="section-heading">
+          <div><p class="section-kicker">Diagnostic report</p><h2 id="results-title">Command output</h2></div>
+          <span class="result-count">{{ results|length }} command{% if results|length != 1 %}s{% endif %} completed</span>
         </div>
         <div class="result-list">
           {% for command, output in results.items() %}
-            <article class="panel result">
-              <h3>{{ command }}</h3>
-              <pre>{{ output }}</pre>
-            </article>
+          <article class="panel result">
+            <header class="result-head"><span class="result-dot" aria-hidden="true"></span><h3>{{ command }}</h3><span class="result-label">OUTPUT</span></header>
+            <pre>{{ output }}</pre>
+          </article>
           {% endfor %}
         </div>
       </section>
-    {% endif %}
-  </main>
-</body>
+      {% elif not error %}
+      <section class="panel empty" aria-label="No results yet">
+        <div class="empty-icon" aria-hidden="true">↗</div>
+        <div><h2>Your diagnostic report will appear here</h2><p>Run diagnostics to retrieve information from the target router. Results will appear below the connection details.</p></div>
+      </section>
+      {% endif %}
+      <footer>Router Console <span aria-hidden="true">·</span> Diagnostic output is provided directly by the target device.</footer>
+    </main>
+    <script>
+      const form = document.getElementById("command-form");
+      const button = document.getElementById("run-button");
+      form.addEventListener("submit", () => {
+        button.disabled = true;
+        button.classList.add("is-loading");
+        button.querySelector(".button-text").textContent = "Collecting output…";
+      });
+    </script>
+  </body>
 </html>
